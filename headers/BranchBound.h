@@ -23,7 +23,7 @@ class BranchBound {
         double optimum;
         VectorXd solution;
 
-        __int64 findRealNumber(VectorXd vectorToSearch);
+        __int64 findBranch(VectorXd vectorToSearch);
         void findSolutions(Node *node);
         bool isBetterSolution(double optimumFound);
 

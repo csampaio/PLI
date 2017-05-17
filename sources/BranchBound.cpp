@@ -26,11 +26,11 @@ BranchBound::BranchBound(Problem *pli, int mode) {
  */
 void BranchBound::findSolutions(Node *node) {
     node->solver = new Simplex(this->mode, node->pli->getObjectiveFunction(), node->pli->getConstraints(), node->pli->getRelations());
-    //verifica se o problema possui solução
+    //verifica se o problema possui solução e se ela é melhor que a atual
     if(node->solver->hasSolution() && this->isBetterSolution(node->solver->getOptimum())) {
         //verifica se a solução possui números reais
         //escolher método para escolha do branch
-        __int64 pos = this->findRealNumber(node->solver->getSolution());
+        __int64 pos = this->findBranch(node->solver->getSolution());
         if(pos != -1) {
             double intPart, temp;
             VectorXd newConstraint;
@@ -66,19 +66,22 @@ void BranchBound::findSolutions(Node *node) {
 }
 
 /**
- * Busca por um número Real
+ * Busca por um número Real para ramificar
+ * Foi utilizado a técnica de Variante de Dakin
  *
  * @param VectorXd vectorToSearch vetor ao qual a busca será realizada
  * @returns __int64 Retorna o índice da coluna ou -1 se não achou.
  */
-__int64 BranchBound::findRealNumber(VectorXd vectorToSearch) {
-    double intPart;
+__int64 BranchBound::findBranch(VectorXd vectorToSearch) {
+    double intPart, floatPart = 0;
+    int temp = -1;
     for (__int64 i = 0; i < vectorToSearch.rows(); i++) {
-        if(modf(vectorToSearch(i), &intPart) != 0) {
-            return i;
+        if(modf(vectorToSearch(i), &intPart) > floatPart) {
+            floatPart = modf(vectorToSearch(i), &intPart);
+            temp = i;
         }
     }
-    return -1;
+    return temp;
 }
 
 /**
