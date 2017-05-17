@@ -25,6 +25,7 @@ class BranchBound {
 
         __int64 findRealNumber(VectorXd vectorToSearch);
         void findSolutions(Node *node);
+        bool isBetterSolution(double optimumFound);
 
     public:
         BranchBound(Problem *pli, int mode);

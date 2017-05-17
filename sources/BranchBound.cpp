@@ -1,4 +1,4 @@
-#include "BranchBound.h"
+#include "../headers/BranchBound.h"
 #include <Eigen>
 #include <cmath>
 
@@ -27,7 +27,7 @@ BranchBound::BranchBound(Problem *pli, int mode) {
 void BranchBound::findSolutions(Node *node) {
     node->solver = new Simplex(this->mode, node->pli->getObjectiveFunction(), node->pli->getConstraints(), node->pli->getRelations());
     //verifica se o problema possui solução
-    if(node->solver->hasSolution()) {
+    if(node->solver->hasSolution() && this->isBetterSolution(node->solver->getOptimum())) {
         //verifica se a solução possui números reais
         //escolher método para escolha do branch
         __int64 pos = this->findRealNumber(node->solver->getSolution());
@@ -79,6 +79,22 @@ __int64 BranchBound::findRealNumber(VectorXd vectorToSearch) {
         }
     }
     return -1;
+}
+
+/**
+ * Verifica se a solução atual é melhor
+ *
+ * @param double Valor a ser verificado
+ * @returns bool true se for melhor e false se não
+ */
+bool BranchBound::isBetterSolution(double optimumFound) {
+    if(this->mode == MAXIMIZE && optimumFound>this->optimum) {
+        return true;
+    }
+    if(this->mode == MINIMIZE && optimumFound<this->optimum){
+        return true;
+    }
+    return false;
 }
 
 /**

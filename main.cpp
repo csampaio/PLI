@@ -1,6 +1,6 @@
 #include <Eigen>
-#include "BranchBound.h"
-#include "exception.h"
+#include "headers/BranchBound.h"
+#include "headers/Exception.h"
 
 using namespace std;
 using namespace Eigen;

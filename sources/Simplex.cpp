@@ -1,6 +1,6 @@
 #include <Eigen>
-#include "Simplex.h"
-#include "exception.h"
+#include "../headers/Simplex.h"
+#include "../headers/Exception.h"
 
 using namespace Eigen;
 
