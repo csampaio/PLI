@@ -9,3 +9,5 @@ aplicando a técnica de branch-and-bound com o algoritmo Simplex.
 ADD to the build path Eigen library: http://eigen.tuxfamily.org
 
 Adicione a biblioteca Eigen no caminho do compilador: http://eigen.tuxfamily.org
+
+*Tab Size = 4
