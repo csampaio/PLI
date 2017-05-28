@@ -19,7 +19,7 @@ using namespace Eigen;
     string line;
 
     //abre o arquivo
-	this->in.open(fileName.c_str());
+    this->in.open(fileName.c_str());
 
 	if(!this->in.is_open()) {
         throw(new Exception("Interpreter: Não foi possível abrir o arquivo de entrada!"));
