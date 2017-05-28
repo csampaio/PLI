@@ -30,7 +30,7 @@ void BranchBound::findSolutions(Node *node) {
     if(node->solver->hasSolution() && this->isBetterSolution(node->solver->getOptimum())) {
         //verifica se a solução possui números reais
         //escolher método para escolha do branch
-        __int64 pos = this->findBranch(node->solver->getSolution());
+        long long pos = this->findBranch(node->solver->getSolution());
         if(pos != -1) {
             double intPart, temp;
             VectorXd newConstraint;
@@ -72,10 +72,10 @@ void BranchBound::findSolutions(Node *node) {
  * @param VectorXd vectorToSearch vetor ao qual a busca será realizada
  * @returns __int64 Retorna o índice da coluna ou -1 se não achou.
  */
-__int64 BranchBound::findBranch(VectorXd vectorToSearch) {
+long long BranchBound::findBranch(VectorXd vectorToSearch) {
     double intPart, floatPart = 0;
     int temp = -1;
-    for (__int64 i = 0; i < vectorToSearch.rows(); i++) {
+    for (long long i = 0; i < vectorToSearch.rows(); i++) {
         if(modf(vectorToSearch(i), &intPart) > floatPart) {
             floatPart = modf(vectorToSearch(i), &intPart);
             temp = i;
@@ -123,7 +123,7 @@ double BranchBound::getOptimum() {
 /**
  * Retorna o valor das variáveis para a solução encontrada.
  *
- * return VectorXd
+ * @returns VectorXd
  */
 VectorXd BranchBound::getSolution() {
 	return this->solution;

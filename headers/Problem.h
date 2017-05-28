@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Eigen>
 
 using namespace Eigen;

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Eigen>
 
 using namespace Eigen;
@@ -15,13 +16,13 @@ class Simplex {
         bool foundSolution;
         double optimum;
         VectorXd solution;
-        __int64 numberOfVariables;
+        long long numberOfVariables;
 
-        bool simplexSolver(__int64 variableNum, int mode, int phase);
-        __int64 findPivot_min(__int64 column, int phase);
-        __int64 getPivotRow(__int64 column);
-        void removeRow(__int64 rowToRemove);
-        void removeColumn(__int64 colToRemove);
+        bool simplexSolver(long long  variableNum, int mode, int phase);
+        long long findPivot_min(long long column, int phase);
+        long long getPivotRow(long long column);
+        void removeRow(long long rowToRemove);
+        void removeColumn(long long colToRemove);
 
     protected:
 

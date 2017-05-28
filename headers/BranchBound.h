@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include "Simplex.h"
 #include "Problem.h"
@@ -23,7 +25,7 @@ class BranchBound {
         double optimum;
         VectorXd solution;
 
-        __int64 findBranch(VectorXd vectorToSearch);
+        long long findBranch(VectorXd vectorToSearch);
         void findSolutions(Node *node);
         bool isBetterSolution(double optimumFound);
 
