@@ -4,7 +4,7 @@
 using namespace Eigen;
 
 /**
- * Construtor
+ * @desc Construtor
  *
  * @param const VectorXd &objectiveFunction Os coeficientes da função objetivo.
  * @param const VectorXd &relations Os sinais de relação das restrições {0 -> <=; 1 -> >=; 2 -> =}.
@@ -17,7 +17,7 @@ using namespace Eigen;
  }
 
  /**
- * Retorna as restrições do problema
+ * @desc Retorna as restrições do problema
  *
  * @returns MatrixXd
  */
@@ -26,7 +26,7 @@ using namespace Eigen;
  }
 
  /**
- * Retorna as relações das restrições do problema
+ * @desc Retorna as relações das restrições do problema
  *
  * @returns VectorXd
  */
@@ -35,7 +35,7 @@ using namespace Eigen;
  }
 
  /**
- * Retorna a função objetivo do problema
+ * @desc Retorna a função objetivo do problema
  *
  * @returns VectorXd
  */
@@ -44,7 +44,7 @@ using namespace Eigen;
  }
 
  /**
- * Adiciona uma função de restrição e sua relação
+ * @desc Adiciona uma função de restrição e sua relação
  *
  * @returns void
  */

@@ -11,15 +11,16 @@ int main() {
 
 	try {
 
-        interpreter = new Interpreter("input.txt");
+        //interpreter = new Interpreter("input.txt");
+        interpreter = new Interpreter("input");
 
         bb = new BranchBound(interpreter->getProblem(), interpreter->getMode());
 
 		if (bb->hasSolution()) {
-			cout << "O valor otimizado e: " << bb->getOptimum() << endl;
-			cout << "A solucao e: " << bb->getSolution().transpose() << endl;
+			cout << "Valor otimizado: " << bb->getOptimum() << endl;
+			cout << "Solucao: [" << bb->getSolution().transpose() << "]"<<endl;
 		} else {
-			cout << "PLI sem solucao." << endl;
+			cout << "Solucao nao encontrada" << endl;
 		}
 
 	} catch (Exception *ex) {

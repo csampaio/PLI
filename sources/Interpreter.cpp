@@ -3,13 +3,14 @@
 #include <Eigen>
 #include <algorithm>
 #include <cctype>
+#include <sstream>
 #include <unordered_map>
 
 
 using namespace Eigen;
 
 /**
- * Construtor
+ * @desc Construtor
  *
  * @param string fileName nome do arquivo a ser lido a entrada
  * @returns Interpreter
@@ -17,6 +18,7 @@ using namespace Eigen;
  Interpreter::Interpreter(const string fileName) {
     long long lineNumber = 1;
     string line;
+    ostringstream ss;
 
     //abre o arquivo
     this->in.open(fileName.c_str());
@@ -38,7 +40,11 @@ using namespace Eigen;
         this->constraints.row(this->constraints.rows()-1) = VectorXd::Zero(this->objectiveFunction.rows()+1);
         this->relations.conservativeResize(lineNumber);
         //interpreta a linha e busca a restrição
-        this->getConstraint(line);
+        if(!this->getConstraint(line)) {
+            ss << lineNumber+1;
+            string message = "Interpreter: Erro na linha " + ss.str() + "!";
+            throw(new Exception(message));
+        }
         lineNumber++;
 	}
 
@@ -49,15 +55,16 @@ using namespace Eigen;
  }
 
  /**
- * Método para encontrar função objetivo e modo na string passada como parâmetro
+ * @desc Método para encontrar função objetivo e modo na string passada como parâmetro
  *
  * @param string line a primeira linha do arquivo contendo a função objetiva e o modo
  * @returns void
  */
 void Interpreter::getObjectiveAndMode(string line) {
     string temp;
-    long long counter, i, variable;
-    unordered_map<long long, long long> variables;
+    long long counter, i;
+    double variable;
+    unordered_map<long long, double> variables;
     char op = '+';
     bool waitDigit = true;
     bool waitX = true;
@@ -92,8 +99,8 @@ void Interpreter::getObjectiveAndMode(string line) {
 
 	for (i=counter;i<line.length();i++){
 	    temp = line.substr(counter,i-counter+1);
-        if(waitDigit && isdigit(line[i]) && !isdigit(line[i+1])) {
-            variable = atoll(temp.c_str());
+        if(waitDigit && isdigit(line[i]) && (!isdigit(line[i+1]) && line[i+1] != '.')) {
+            variable = atof(temp.c_str());
             counter=i+1;
             waitDigit = false;
             continue;
@@ -104,6 +111,9 @@ void Interpreter::getObjectiveAndMode(string line) {
             waitPos = true;
             continue;
         } else if(i+1==line.length() || (waitPos && isdigit(line[i]) && !isdigit(line[i+1]))) {
+            if(!waitPos || waitX) {
+                throw(new Exception("Interpreter: Erro ao interpretar a funcao objetivo!"));
+            }
             if(op == '-') {
                variable = -variable;
             }
@@ -131,15 +141,16 @@ void Interpreter::getObjectiveAndMode(string line) {
 }
 
  /**
- * Método para buscar uma restrição da PLI a partir da string passada
+ * @desc Método para buscar uma restrição da PLI a partir da string passada
  *
  * @param string line linha do arquivo contendo a restrição
- * @returns void
+ * @returns bool true se conseguiu obter a restrição
  */
-void Interpreter::getConstraint(string line) {
+bool Interpreter::getConstraint(string line) {
     string temp;
-    long long counter, i, variable;
-    unordered_map<long long, long long> variables;
+    long long counter, i;
+    double variable;
+    unordered_map<long long, double> variables;
     char op = '+';
     int relation;
     bool waitDigit = true;
@@ -161,8 +172,8 @@ void Interpreter::getConstraint(string line) {
 
 	for (i=counter;i<line.length();i++){
 	    temp = line.substr(counter,i-counter+1);
-        if(waitDigit && isdigit(line[i]) && !isdigit(line[i+1])) {
-            variable = atoll(temp.c_str());
+        if(waitDigit && isdigit(line[i]) && (!isdigit(line[i+1]) && line[i+1] != '.') && i+1!=line.length()) {
+            variable = atof(temp.c_str());
             counter=i+1;
             waitDigit = false;
             continue;
@@ -172,7 +183,7 @@ void Interpreter::getConstraint(string line) {
             waitDigit = false;
             waitPos = true;
             continue;
-        } else if(waitPos && isdigit(line[i]) && !isdigit(line[i+1])) {
+        } else if(waitPos && isdigit(line[i]) && !isdigit(line[i+1]) && i+1!=line.length()) {
             if(op == '-') {
                variable = -variable;
             }
@@ -182,14 +193,17 @@ void Interpreter::getConstraint(string line) {
             waitOperator = true;
             waitPos=false;
             continue;
-        } else if(waitOperator && (line[i]=='+' || line[i]=='-')) {
+        } else if(waitOperator && (line[i]=='+' || line[i]=='-') && i+1!=line.length()) {
             op = line[i];
             counter=i+1;
             waitOperator = false;
             waitDigit=true;
             waitX = true;
             continue;
-        } else if(line[i]=='>' || line[i]=='=' || line[i]=='<') {
+        } else if((line[i]=='>' || line[i]=='=' || line[i]=='<') && i+1!=line.length()) {
+            if(!waitOperator) {
+                return false;
+            }
             switch(line[i]) {
                 case '>':
                     relation = 1;
@@ -201,8 +215,9 @@ void Interpreter::getConstraint(string line) {
                     relation = 0;
                     break;
             }
-            if(line[i+1] == '=')
+            if(line[i+1] == '=') {
                 i++;
+            }
             if(line[i+2] == '-') {
                 op = '-';
                 i++;
@@ -210,11 +225,13 @@ void Interpreter::getConstraint(string line) {
                 op = '+';
             }
             counter=i+1;
-            waitDigit=false;
-            waitPos=false;
+            waitOperator = false;
             continue;
         } else if(i+1==line.length()) {
-            variable = atoll(temp.c_str());
+            if(waitOperator || waitDigit || waitOperator || waitPos || waitX) {
+                return false;
+            }
+            variable = atof(temp.c_str());
             if(op == '-') {
                variable = -variable;
             }
@@ -230,10 +247,12 @@ void Interpreter::getConstraint(string line) {
 
 	this->relations(this->relations.rows()-1) = relation;
 
+	return true;
+
 }
 
 /**
- * Método para retornar o problema encontrado
+ * @desc Método para retornar o problema encontrado
  *
  * @returns Problem
  */
@@ -242,7 +261,7 @@ Problem* Interpreter::getProblem() {
 }
 
 /**
- * Método para retornar o modo (Maximização ou Minimização)
+ * @desc Método para retornar o modo (Maximização ou Minimização)
  *
  * @returns int
  */

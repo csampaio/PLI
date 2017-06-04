@@ -17,7 +17,7 @@ class Interpreter {
         ifstream in;
 
         void getObjectiveAndMode(string line);
-        void getConstraint(string line);
+        bool getConstraint(string line);
 
     public:
         Interpreter(const string fileName);

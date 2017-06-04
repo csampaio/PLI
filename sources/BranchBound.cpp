@@ -1,11 +1,12 @@
 #include "../headers/BranchBound.h"
 #include <Eigen>
 #include <cmath>
+#include <limits>
 
 using namespace Eigen;
 
 /**
- * Construtor
+ * @desc Construtor
  *
  * @param Problem *pli problema de Programação Linear Inteira a ser resolvido pelo branch-and-bound.
  * @param int mode Pode ser: MINIMIZE, MAXIMIZE
@@ -14,12 +15,17 @@ BranchBound::BranchBound(Problem *pli, int mode) {
     this->mode = mode;
     this->root = new Node();
     this->root->pli = pli;
-    this->optimum = 0;
+    this->foundSolution = false;
+    if(mode == MAXIMIZE) {
+        this->optimum = numeric_limits<double>::min();
+    } else {
+        this->optimum = numeric_limits<double>::max();
+    }
     this->findSolutions(root);
 }
 
 /**
- * Busca por todas as soluções
+ * @desc Busca por todas as soluções
  *
  * @param Node node contém o problema a ser resolvido.
  * @returns void
@@ -34,7 +40,6 @@ void BranchBound::findSolutions(Node *node) {
         if(pos != -1) {
             double intPart, temp;
             VectorXd newConstraint;
-
             //busca a parte fracional do número
             temp = node->solver->getSolution()(pos);
             modf(temp, &intPart);
@@ -55,19 +60,16 @@ void BranchBound::findSolutions(Node *node) {
             node->right->pli->addConstraint(newConstraint, 1);
             this->findSolutions(node->right);
         } else {
-            //verifica se a solução econtrada é melhor que a atual
-            if(node->solver->getOptimum() > this->optimum) {
-                this->foundSolution = true;
-                this->optimum = node->solver->getOptimum();
-                this->solution = node->solver->getSolution();
-            }
+            this->foundSolution = true;
+            this->optimum = node->solver->getOptimum();
+            this->solution = node->solver->getSolution();
         }
     }
 }
 
 /**
- * Busca por um número Real para ramificar
- * Foi utilizado a técnica de Variante de Dakin
+ * @desc Busca por um número Real para ramificar
+ * @desc Foi utilizado a técnica de Variante de Dakin
  *
  * @param VectorXd vectorToSearch vetor ao qual a busca será realizada
  * @returns __int64 Retorna o índice da coluna ou -1 se não achou.
@@ -85,7 +87,7 @@ long long BranchBound::findBranch(VectorXd vectorToSearch) {
 }
 
 /**
- * Verifica se a solução atual é melhor
+ * @desc Verifica se a solução atual é melhor
  *
  * @param double Valor a ser verificado
  * @returns bool true se for melhor e false se não
@@ -101,8 +103,8 @@ bool BranchBound::isBetterSolution(double optimumFound) {
 }
 
 /**
- * Retorna true se a solução foi encontrada.
- * Retorna false caso contrário.
+ * @desc Retorna true se a solução foi encontrada.
+ * @desc Retorna false caso contrário.
  *
  * @returns boolean
  */
@@ -112,7 +114,7 @@ bool BranchBound::hasSolution() {
 
 
 /**
- * Retorna o valor ótimo da função objetivo maximizado ou minimizado com valores inteiros
+ * @desc Retorna o valor ótimo da função objetivo maximizado ou minimizado com valores inteiros
  *
  * @returns double
  */
@@ -121,7 +123,7 @@ double BranchBound::getOptimum() {
 }
 
 /**
- * Retorna o valor das variáveis para a solução encontrada.
+ * @desc Retorna o valor das variáveis para a solução encontrada.
  *
  * @returns VectorXd
  */

@@ -5,12 +5,12 @@
 using namespace Eigen;
 
 /**
- * Construtor
+ * @desc Construtor
  *
  * @param int mode Pode ser: SIMPLEX_MINIMIZE, SIMPLEX_MAXIMIZE
- * @param const VectorXd &objectiveFunction Os coeficientes da funÁ„o objetivo.
- * @param const VectorXd &relations Os sinais de relaÁ„o das restriÁıes {0 -> <=; 1 -> >=; 2 -> =}.
- * @param const MatrixXd &constraints Matriz com todas as restriÁıes.
+ * @param const VectorXd &objectiveFunction Os coeficientes da fun√ß√£o objetivo.
+ * @param const VectorXd &relations Os sinais de rela√ß√£o das restri√ß√µes {0 -> <=; 1 -> >=; 2 -> =}.
+ * @param const MatrixXd &constraints Matriz com todas as restri√ß√µes.
  * @returns Simplex
  */
 Simplex::Simplex(int mode, const VectorXd &objectiveFunction, const MatrixXd &constraints, const VectorXd &relations) {
@@ -23,40 +23,41 @@ Simplex::Simplex(int mode, const VectorXd &objectiveFunction, const MatrixXd &co
 		Valida as entradas
 	*/
 	if (mode != SIMPLEX_MINIMIZE && mode != SIMPLEX_MAXIMIZE) {
-		throw(new Exception("Simplex: modo inv·lido!."));
+		throw(new Exception("Simplex: modo inv√°lido!."));
 	}
 
 	if (objectiveFunction.rows() < 1) {
-		throw(new Exception("Simplex: Deve conter pelo menos um coeficiente na funÁ„o objetivo."));
+		throw(new Exception("Simplex: Deve conter pelo menos um coeficiente na funcao objetivo."));
 	}
 
 	if (constraints.rows() < 1) {
-		throw(new Exception("Simplex: Deve ter pelo menos uma restriÁ„o."));
+		throw(new Exception("Simplex: Deve ter pelo menos uma restricao."));
 	}
 
 	if (constraints.cols() != objectiveFunction.rows() + 1) {
-		throw(new Exception("Simplex: n˙mero de coeficientes da funÁ„o objetivo diferente do n˙mero de coeficientes de restriÁ„o."));
+		throw(new Exception("Simplex: numero de coeficientes da funcao objetivo diferente do n√∫mero de coeficientes de restri√ß√£o."));
 	}
 
 	if (relations.rows() != constraints.rows()) {
-		throw(new Exception("Simplex: n˙mero de relaÁıes diferentes do n˙mero de restriÁıes."));
+		throw(new Exception("Simplex: numero de rela√ß√µes diferentes do numero de restricoes."));
 	}
-
+    /*
 	for (long long i = 0; i < this->numberOfVariables; i++) {
 		if (objectiveFunction(i) == 0) {
-			throw(new Exception("Simplex: Um dos coeficientes da funÁ„o objetivo È zero."));
+			throw(new Exception("Simplex: Um dos coeficientes da funcao objetivo e zero."));
 		}
 	}
+	*/
 
 	temp = constraints.cols() - 1;
 	for (long long i = 0; i < constraints.rows(); i++) {
 		if (constraints(i, temp) < 0) {
-			throw(new Exception("Simplex: Todo lado direito da tabela de restriÁıes deve ser n„o negativo."));
+			throw(new Exception("Simplex: Todo lado direito da tabela de restricoes deve ser nao negativo."));
 		}
 	}
 
 	/*
-		ConstrÛi o tableau
+		Constr√≥i o tableau
 	*/
 	int numberOfArtificials = 0;
     for(long long i = 0; i < relations.rows(); i++) {
@@ -80,7 +81,7 @@ Simplex::Simplex(int mode, const VectorXd &objectiveFunction, const MatrixXd &co
             } else if (relations(i-2) == 2) {
                 removeColumn(this->numberOfVariables + i - 2);
                 this->tableau.row(0)+=this->tableau.row(i)*relations(i-2);
-                this->tableau(i, this->numberOfVariables + constraints.rows() + temp) = 1;
+                this->tableau(i, this->numberOfVariables + constraints.rows() + temp -1) = 1;
                 temp++;
             }
         }
@@ -90,17 +91,18 @@ Simplex::Simplex(int mode, const VectorXd &objectiveFunction, const MatrixXd &co
 		this->tableau <<	-objectiveFunction.transpose(), MatrixXd::Zero(1, constraints.rows() + 1),
 							constraints.leftCols(this->numberOfVariables),	MatrixXd::Identity(constraints.rows(), constraints.rows()), constraints.rightCols(1);
     }
+
     /*
         Primeira fase Simplex
     */
     if(numberOfArtificials > 0) {
-        //caso a minimizaÁ„o n„o seja 0, n„o existe soluÁ„o para a PLI
+        //caso a minimiza√ß√£o n√£o seja 0, n√£o existe solu√ß√£o para a PLI
         if (!this->simplexSolver(this->numberOfVariables, SIMPLEX_MINIMIZE, FIRST_PHASE) || this->tableau(0, this->tableau.cols() - 1) != 0) {
-            return;	// Sem soluÁ„o
+            return;	// Sem solu√ß√£o
         }
-        //remove a primeira linha criada para cancelar as vari·veis artificiais
+        //remove a primeira linha criada para cancelar as vari√°veis artificiais
         this->removeRow(0);
-        //remove as colunas das vari·veis artificiais
+        //remove as colunas das vari√°veis artificiais
         for(long long  i = 0; i < numberOfArtificials; i++) {
             this->removeColumn(this->tableau.cols() - 2);
         }
@@ -110,11 +112,11 @@ Simplex::Simplex(int mode, const VectorXd &objectiveFunction, const MatrixXd &co
         Segunda fase Simplex
     */
     if (!this->simplexSolver(this->numberOfVariables, mode, SECOND_PHASE)) {
-			return;	// Sem soluÁ„o
+			return;	// Sem solu√ß√£o
     }
 
 	/*
-		Busca soluÁ„o
+		Busca solu√ß√£o
 	*/
 	constantColumn = this->tableau.cols() - 1;
 	this->solution.resize(this->numberOfVariables);
@@ -125,7 +127,7 @@ Simplex::Simplex(int mode, const VectorXd &objectiveFunction, const MatrixXd &co
             // Variavel basica
             this->solution(i) = this->tableau(temp, constantColumn);
         } else {
-            // Variavel n„o basica
+            // Variavel n√£o basica
             this->solution(i) = 0;
         }
     }
@@ -134,8 +136,8 @@ Simplex::Simplex(int mode, const VectorXd &objectiveFunction, const MatrixXd &co
 }
 
 /**
- * Retorna true se a soluÁ„o foi encontrada.
- * Retorna false caso contr·rio.
+ * @desc Retorna true se a solu√ß√£o foi encontrada.
+ * @desc Retorna false caso contr√°rio.
  *
  * @returns boolean
  */
@@ -144,7 +146,7 @@ bool Simplex::hasSolution() {
 }
 
 /**
- * Retorna o valor Ûtimo da funÁ„o objetivo maximizado ou minimizado
+ * @desc Retorna o valor √≥timo da fun√ß√£o objetivo maximizado ou minimizado
  *
  * @returns double
  */
@@ -153,40 +155,45 @@ double Simplex::getOptimum() {
 }
 
 /**
- * Retorna o valor das vari·veis para a soluÁ„o encontrada.
+ * @desc Retorna o valor das vari√°veis para a solu√ß√£o encontrada.
  *
- * return VectorXd
+ * @returns VectorXd
  */
 VectorXd Simplex::getSolution() {
 	return this->solution;
 }
 
 /**
- * Busca na matriz tableau a soluÁ„o.
+ * @desc Busca na matriz tableau a solu√ß√£o.
  *
- * @param __int64 variableNum (O n˙mero de vari·veis).
- * @param int mode (Se È para maximizar ou minimizar).
- * @param int phase (Se È a primeira ou segunda fase do mÈtodo simplex).
- * @returns bool Retorna true se uma soluÁ„o foi encontrada, false caso n„o seja.
+ * @param __int64 variableNum (O n√∫mero de vari√°veis).
+ * @param int mode (Se √© para maximizar ou minimizar).
+ * @param int phase (Se √© a primeira ou segunda fase do m√©todo simplex).
+ * @returns bool Retorna true se uma solu√ß√£o foi encontrada, false caso n√£o seja.
  */
 bool Simplex::simplexSolver(long long variableNum, int mode, int phase) {
 	MatrixXd::Index pivotColumn;
 	long long pivotRow;
+	double lastOptimum;
+	int repeatOptimum = 0;
 
 	while (true) {
+        cout<<this->tableau<<endl<<endl;
+        lastOptimum = this->tableau(0, this->tableau.cols()-1);
+
 		/*
 			Busca a coluna pivotal
 		*/
 		if (mode == SIMPLEX_MAXIMIZE) {
             this->tableau.row(0).minCoeff(&pivotColumn);
-            if (this->tableau(0, pivotColumn) >= 0) {
-                //se o menor valor for maior ou igual a zero ent„o a soluÁ„o foi encontrada
+            if(this->tableau(0, pivotColumn) >= 0) {
+                //se o menor valor for maior ou igual a zero ent√£o a solu√ß√£o foi encontrada
                 break;
             }
         } else {
-             this->tableau.row(0).leftCols(this->tableau.cols()-1).maxCoeff(&pivotColumn);
-             if (this->tableau(0, pivotColumn) <= 0) {
-                //se o maior valor for menor ou igual a zero ent„o a soluÁ„o foi encontrada
+            this->tableau.row(0).leftCols(this->tableau.cols()-1).maxCoeff(&pivotColumn);
+            if(this->tableau(0, pivotColumn) <= 0) {
+                //se o maior valor for menor ou igual a zero ent√£o a solu√ß√£o foi encontrada
                 break;
             }
         }
@@ -196,20 +203,27 @@ bool Simplex::simplexSolver(long long variableNum, int mode, int phase) {
 		*/
 		pivotRow = this->findPivot_min(pivotColumn, phase);
 		if (pivotRow == -1) {
-			//sem soluÁ„o
+			//sem solu√ß√£o
 			return false;
 		}
 
 		/*
-			OperaÁ„o com o pivÙ
+			Opera√ß√£o com o piv√¥
 		*/
 		this->tableau.row(pivotRow) /= this->tableau(pivotRow, pivotColumn);
-		this->tableau(pivotRow, pivotColumn) = 1;	// Para problemas de precis„o
+		this->tableau(pivotRow, pivotColumn) = 1;	// Para problemas de precis√£o
 		for (long long i = 0; i < this->tableau.rows(); i++) {
-			if (i == pivotRow) continue;
+            if (i == pivotRow) continue;
 
 			this->tableau.row(i) -= this->tableau.row(pivotRow) * this->tableau(i, pivotColumn);
-			this->tableau(i, pivotColumn) = 0;	// Para problemas de precis„o
+            this->tableau(i, pivotColumn) = 0;	// Para problemas de precis√£o
+		}
+		//caso especial degeneracao
+		if(lastOptimum == this->tableau(0, this->tableau.cols()-1)) {
+            repeatOptimum++;
+            if(repeatOptimum > 20) {
+                return false;
+            }
 		}
 	}
 
@@ -217,13 +231,13 @@ bool Simplex::simplexSolver(long long variableNum, int mode, int phase) {
 }
 
 /**
- * Busca pela linha pivotal a partir da coluna pivotal
- * Tenta achar a menor proporÁ„o (ratio) n„o negativo.
- * Retorna -1 se todas as proporÁıes s„o negativas ou os candidatos a pivÙ sejam 0.
+ * @desc Busca pela linha pivotal a partir da coluna pivotal
+ * @desc Tenta achar a menor propor√ß√£o (ratio) n√£o negativo.
+ * @desc Retorna -1 se todas as propor√ß√µes s√£o negativas ou os candidatos a piv√¥ sejam 0.
  *
  * @param __int64 column coluna pivotal
- * @param int phase indica a fase do mÈtodo simplex
- * @returns __int64 Retorna o Ìndice da linha pivotal ou -1 se n„o achou.
+ * @param int phase indica a fase do m√©todo simplex
+ * @returns __int64 Retorna o √≠ndice da linha pivotal ou -1 se n√£o achou.
  */
 long long Simplex::findPivot_min(long long column, int phase) {
 	long long minIndex = -1;
@@ -245,12 +259,12 @@ long long Simplex::findPivot_min(long long column, int phase) {
 
 		ratio = this->tableau(i, constantColumn) / this->tableau(i, column);
 		if (ratio < 0) {
-			//A proporÁ„o deve ser n„o negativo
+			//A propor√ß√£o deve ser n√£o negativo
 			continue;
 		}
 
 		if (minIndex == -1) {
-			// Primeiro candidato a pivÙ
+			// Primeiro candidato a piv√¥
 			minIndex = i;
 			minRatio = ratio;
 			minConstant = this->tableau(i, constantColumn);
@@ -274,9 +288,9 @@ long long Simplex::findPivot_min(long long column, int phase) {
 }
 
 /**
- * Retorna a linha que possui o valor 1, sendo os outros valores 0, da coluna passada como par‚metro.
- * Caso contr·rio retorna -1.
- * MÈtodo utilizado para contruÁ„o da soluÁ„o.
+ * @desc Retorna a linha que possui o valor 1, sendo os outros valores 0, da coluna passada como par√¢metro.
+ * @desc Caso contr√°rio retorna -1.
+ * @desc M√©todo utilizado para contru√ß√£o da solu√ß√£o.
  *
  * @param __int64 column
  * @returns __int64
@@ -301,7 +315,7 @@ long long Simplex::getPivotRow(long long column) {
 }
 
 /**
- * MÈtodo para remover determinada linha do tableau
+ * @desc M√©todo para remover determinada linha do tableau
  *
  * @param __int64 rowToRemove
  * @returns void
@@ -317,7 +331,7 @@ void Simplex::removeRow(long long rowToRemove) {
 }
 
 /**
- * MÈtodo para remover determinada coluna do tableau
+ * @desc M√©todo para remover determinada coluna do tableau
  *
  * @param __int64 rowToRemove
  * @returns void
